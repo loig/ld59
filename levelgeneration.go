@@ -109,13 +109,13 @@ func (l *level) generateGrid() (startX, startY int) {
 				numAllowed := signalElementNum
 
 				// avoid branching into the existing solution
-				for s := range forbidenSignalElementPerX[x] {
+				for _, s := range forbidenSignalElementPerX[x] {
 					if allowed[s] {
 						allowed[s] = false
 						numAllowed--
 					}
 				}
-				for s := range forbidenSignalElementPerY[y] {
+				for _, s := range forbidenSignalElementPerY[y] {
 					if allowed[s] {
 						allowed[s] = false
 						numAllowed--
