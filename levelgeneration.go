@@ -24,7 +24,7 @@ import (
 
 func (l *level) getNew(levelNumber int) {
 	l.playerProgress = 0
-	l.moveDistance = 0
+	//l.moveDistance = 0
 	l.moveRecord = l.moveRecord[:0]
 
 	l.generateSignal()

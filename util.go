@@ -28,3 +28,15 @@ func isWheelDownJustUsed() bool {
 	_, dy := ebiten.Wheel()
 	return dy < 0
 }
+
+func mouseToGridX(mousePos int) int {
+	return (mousePos - globalGridX) / globalCellSize
+}
+
+func mouseToGridY(mousePos int) int {
+	return (mousePos - globalGridY) / globalCellSize
+}
+
+func xor(b1, b2 bool) bool {
+	return (b1 || b2) && !(b1 && b2)
+}

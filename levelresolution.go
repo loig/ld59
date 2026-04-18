@@ -19,31 +19,54 @@ package main
 
 import (
 	"image"
-	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 // Drawing a level
 func (l level) draw(screen *ebiten.Image) {
+	lBack := true
 	for y, line := range l.grid {
+		back := lBack
 		for x, s := range line {
-			s.draw(x, y, screen)
+			drawBack(x, y, back, screen)
+			s.draw(x, y, l.cursorX == x && l.cursorY == y, screen)
+			back = !back
 		}
+		lBack = !lBack
 	}
 
 	drawPlayer(l.playerX, l.playerY, screen)
-	l.drawMoveDistances(l.playerX, l.playerY, l.moveDistance+1, screen)
+	drawCursor(l.cursorX, l.cursorY, xor(l.cursorX == l.playerX, l.cursorY == l.playerY), screen)
 }
 
-func (s signalElement) draw(x, y int, screen *ebiten.Image) {
-	xx := globalGridX + x*globalCellSize
-	yy := globalGridY + y*globalCellSize
+func drawBack(x, y int, back bool, screen *ebiten.Image) {
+	xx := float64(globalGridX + x*globalCellSize)
+	yy := float64(globalGridY + y*globalCellSize)
 
 	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(float64(xx), float64(yy))
+	op.GeoM.Translate(xx, yy)
+	imX := 2 * globalCellSize
+	if !back {
+		imX += globalCellSize
+	}
+	imY := globalCellSize
+	screen.DrawImage(images.SubImage(image.Rect(imX, imY, imX+globalCellSize, imY+globalCellSize)).(*ebiten.Image), op)
+}
+
+func (s signalElement) draw(x, y int, big bool, screen *ebiten.Image) {
+	xx := float64(globalGridX + x*globalCellSize)
+	yy := float64(globalGridY + y*globalCellSize)
+
+	op := &ebiten.DrawImageOptions{}
+	if big {
+		scaleFactor := 1.2
+		xx = xx - globalCellSize*scaleFactor/2 + globalCellSize/2
+		yy = yy - globalCellSize*scaleFactor/2 + globalCellSize/2
+		op.GeoM.Scale(scaleFactor, scaleFactor)
+	}
+	op.GeoM.Translate(xx, yy)
 	imX := int(globalCellSize * s)
 	imY := 0
 	screen.DrawImage(images.SubImage(image.Rect(imX, imY, imX+globalCellSize, imY+globalCellSize)).(*ebiten.Image), op)
@@ -51,12 +74,30 @@ func (s signalElement) draw(x, y int, screen *ebiten.Image) {
 
 func drawPlayer(x, y int, screen *ebiten.Image) {
 
-	xx := globalGridX + x*globalCellSize + globalCellSize/4
-	yy := globalGridY + y*globalCellSize + globalCellSize/4
+	xx := globalGridX + x*globalCellSize
+	yy := globalGridY + y*globalCellSize
 
-	vector.FillRect(screen, float32(xx), float32(yy), globalCellSize/2, globalCellSize/2, color.White, false)
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Translate(float64(xx), float64(yy))
+	imX := 0
+	imY := globalCellSize
+	screen.DrawImage(images.SubImage(image.Rect(imX, imY, imX+globalCellSize, imY+globalCellSize)).(*ebiten.Image), op)
 }
 
+func drawCursor(x, y int, reachable bool, screen *ebiten.Image) {
+	if reachable {
+		xx := globalGridX + x*globalCellSize
+		yy := globalGridY + y*globalCellSize
+
+		op := &ebiten.DrawImageOptions{}
+		op.GeoM.Translate(float64(xx), float64(yy))
+		imX := globalCellSize
+		imY := globalCellSize
+		screen.DrawImage(images.SubImage(image.Rect(imX, imY, imX+globalCellSize, imY+globalCellSize)).(*ebiten.Image), op)
+	}
+}
+
+/*
 func (l level) drawMoveDistances(x, y, distance int, screen *ebiten.Image) {
 
 	// up
@@ -94,36 +135,54 @@ func drawMoveDistance(x, y, direction int, screen *ebiten.Image) {
 	imX += globalCellSize + direction*globalCellSize
 	screen.DrawImage(images.SubImage(image.Rect(imX, imY, imX+globalCellSize, imY+globalCellSize)).(*ebiten.Image), op)
 }
+*/
 
 // Updating player position
-func (l *level) updatePlayer() (levelFinished bool) {
+func (l *level) updatePlayer(mouseX, mouseY int) (levelFinished bool) {
+
+	l.cursorX = mouseToGridX(mouseX)
+	l.cursorY = mouseToGridY(mouseY)
+
+	/*
+		switch {
+		case inpututil.IsKeyJustPressed(ebiten.KeyUp):
+			return l.movePlayer(l.playerX, l.playerY-1-l.moveDistance)
+		case inpututil.IsKeyJustPressed(ebiten.KeyDown):
+			return l.movePlayer(l.playerX, l.playerY+1+l.moveDistance)
+		case inpututil.IsKeyJustPressed(ebiten.KeyLeft):
+			return l.movePlayer(l.playerX-1-l.moveDistance, l.playerY)
+		case inpututil.IsKeyJustPressed(ebiten.KeyRight):
+			return l.movePlayer(l.playerX+1+l.moveDistance, l.playerY)
+		case inpututil.IsKeyJustPressed(ebiten.KeyBackspace) ||
+			inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight):
+			l.revertMove()
+		case inpututil.IsKeyJustPressed(ebiten.KeyTab) ||
+			isWheelUpJustUsed():
+			l.updateMoveDistance(true)
+		case inpututil.IsKeyJustPressed(ebiten.KeyShiftLeft) ||
+			inpututil.IsKeyJustPressed(ebiten.KeyShiftRight) ||
+			isWheelDownJustUsed():
+			l.updateMoveDistance(false)
+		}
+	*/
 
 	switch {
-	case inpututil.IsKeyJustPressed(ebiten.KeyUp):
-		return l.movePlayer(l.playerX, l.playerY-1-l.moveDistance)
-	case inpututil.IsKeyJustPressed(ebiten.KeyDown):
-		return l.movePlayer(l.playerX, l.playerY+1+l.moveDistance)
-	case inpututil.IsKeyJustPressed(ebiten.KeyLeft):
-		return l.movePlayer(l.playerX-1-l.moveDistance, l.playerY)
-	case inpututil.IsKeyJustPressed(ebiten.KeyRight):
-		return l.movePlayer(l.playerX+1+l.moveDistance, l.playerY)
-	case inpututil.IsKeyJustPressed(ebiten.KeyBackspace) ||
-		inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight):
+	case inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft):
+		return l.movePlayer(l.cursorX, l.cursorY)
+	case inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight):
 		l.revertMove()
-	case inpututil.IsKeyJustPressed(ebiten.KeyTab) ||
-		isWheelUpJustUsed():
-		l.updateMoveDistance(true)
-	case inpututil.IsKeyJustPressed(ebiten.KeyShiftLeft) ||
-		inpututil.IsKeyJustPressed(ebiten.KeyShiftRight) ||
-		isWheelDownJustUsed():
-		l.updateMoveDistance(false)
 	}
 
 	return false
 }
 
 func (l *level) movePlayer(newPosX, newPosY int) (levelFinished bool) {
-	possibleMove := true
+	possibleMove := newPosX == l.playerX || newPosY == l.playerY
+
+	// move is not possible
+	if !possibleMove {
+		return
+	}
 
 	// check if move is in grid and to colored tile
 	if newPosY < 0 || newPosY >= len(l.grid) ||
@@ -158,7 +217,7 @@ func (l *level) movePlayer(newPosX, newPosY int) (levelFinished bool) {
 	l.playerProgress++
 	l.playerX = newPosX
 	l.playerY = newPosY
-	l.moveDistance = 0
+	//l.moveDistance = 0
 	l.grid[l.playerY][l.playerX] = signalElementNone
 
 	// end of signal: level completed
@@ -173,10 +232,11 @@ func (l *level) revertMove() {
 		l.playerX = record.lastX
 		l.playerY = record.lastY
 		l.playerProgress = record.lastProgress
-		l.moveDistance = 0
+		//l.moveDistance = 0
 	}
 }
 
+/*
 func (l *level) updateMoveDistance(inc bool) {
 	step := 1
 	if !inc {
@@ -204,3 +264,4 @@ func (l level) maxPossibleMove() int {
 
 	return max(upY, downY, leftX, rightX)
 }
+*/

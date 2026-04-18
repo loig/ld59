@@ -37,6 +37,7 @@ type level struct {
 	signal                           []signalElement
 	grid                             [globalLevelSizeY][globalLevelSizeX]signalElement
 	playerX, playerY, playerProgress int
-	moveDistance                     int
-	moveRecord                       []playerState
+	cursorX, cursorY                 int
+	//moveDistance                     int
+	moveRecord []playerState
 }

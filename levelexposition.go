@@ -25,7 +25,7 @@ import (
 func (l level) drawExposition(screen *ebiten.Image) {
 
 	for pos, element := range l.signal {
-		element.draw(pos, 0, screen)
+		element.draw(pos, 0, false, screen)
 	}
 
 }
