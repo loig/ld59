@@ -18,18 +18,65 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package main
 
 import (
+	"image"
+	"math/rand"
+
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 func (l level) drawExposition(screen *ebiten.Image) {
 
-	for pos, element := range l.signal {
-		element.draw(pos, 0, false, screen)
+	if l.signalPosition < len(l.signal) {
+		l.signal[l.signalPosition].drawFreely(l.signalX, l.signalY, false, screen)
 	}
 
 }
 
-func updateExposition() (done bool) {
-	return inpututil.IsKeyJustPressed(ebiten.KeyEnter) || inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft)
+func (l *level) updateExposition() (done bool) {
+
+	if !l.expositionDone {
+		l.signalElementFramesLeft--
+		if l.signalElementFramesLeft <= 0 {
+			l.signalElementFramesLeft = l.signalElementFrames
+			l.signalPosition++
+			l.signalX, l.signalY = getNewSignalPlace(l.signalX, l.signalY)
+			l.expositionDone = l.signalPosition >= len(l.signal)
+		}
+	}
+
+	return l.expositionDone
+}
+
+func (s signalElement) drawFreely(x, y int, big bool, screen *ebiten.Image) {
+	xx := float64(x)
+	yy := float64(y)
+
+	op := &ebiten.DrawImageOptions{}
+	if big {
+		scaleFactor := 1.2
+		xx = xx - globalCellSize*scaleFactor/2 + globalCellSize/2
+		yy = yy - globalCellSize*scaleFactor/2 + globalCellSize/2
+		op.GeoM.Scale(scaleFactor, scaleFactor)
+	}
+	op.GeoM.Translate(xx, yy)
+	imX := int(globalCellSize * s)
+	imY := 0
+	screen.DrawImage(images.SubImage(image.Rect(imX, imY, imX+globalCellSize, imY+globalCellSize)).(*ebiten.Image), op)
+}
+
+func getNewSignalPlace(x, y int) (xx, yy int) {
+	return farButNotMuch(x, globalScreenWidth),
+		farButNotMuch(y, globalScreenHeight)
+}
+
+func farButNotMuch(pos, posMax int) (newPos int) {
+	shift := rand.Intn(posMax/2) + posMax/4
+	newPos = (pos + shift) % posMax
+	if newPos < 2*globalCellSize {
+		newPos = 2 * globalCellSize
+	}
+	if newPos > posMax-2*globalCellSize {
+		newPos = posMax - 2*globalCellSize
+	}
+	return
 }

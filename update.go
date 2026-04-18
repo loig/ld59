@@ -19,6 +19,7 @@ package main
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 func (g *game) Update() error {
@@ -26,15 +27,29 @@ func (g *game) Update() error {
 	mouseX, mouseY := ebiten.CursorPosition()
 
 	switch g.state {
+	case gameStateTitle:
+		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+			g.state = gameStateLevelExposition
+		}
 	case gameStateLevelExposition:
-		if updateExposition() {
+		if g.level.updateExposition() {
 			g.state = gameStateLevelResolution
 		}
 	case gameStateLevelResolution:
-		if g.level.updatePlayer(mouseX, mouseY) {
+		finished, dead := g.level.update(mouseX, mouseY)
+		if finished {
 			g.level.getNew(g.levelNumber)
 			g.levelNumber++
 			g.state = gameStateLevelExposition
+		}
+		if dead {
+			g.state = gameStateGameOver
+		}
+	case gameStateGameOver:
+		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+			g.levelNumber = 1
+			g.level.getNew(0)
+			g.state = gameStateTitle
 		}
 	}
 

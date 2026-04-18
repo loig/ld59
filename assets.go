@@ -31,6 +31,26 @@ import (
 var imagesBytes []byte
 var images *ebiten.Image
 
+//go:embed assets/fond.png
+var fondBytes []byte
+var fondImage *ebiten.Image
+
+//go:embed assets/digits.png
+var digitsBytes []byte
+var digitsImage *ebiten.Image
+
+//go:embed assets/countdown.png
+var countdownBytes []byte
+var countdownImage *ebiten.Image
+
+//go:embed assets/title.png
+var titleBytes []byte
+var titleImage *ebiten.Image
+
+//go:embed assets/gameover.png
+var gameoverBytes []byte
+var gameoverImage *ebiten.Image
+
 // load images
 func loadImages() {
 	decoded, _, err := image.Decode(bytes.NewReader(imagesBytes))
@@ -38,4 +58,34 @@ func loadImages() {
 		log.Fatal(err)
 	}
 	images = ebiten.NewImageFromImage(decoded)
+
+	decoded, _, err = image.Decode(bytes.NewReader(fondBytes))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fondImage = ebiten.NewImageFromImage(decoded)
+
+	decoded, _, err = image.Decode(bytes.NewReader(digitsBytes))
+	if err != nil {
+		log.Fatal(err)
+	}
+	digitsImage = ebiten.NewImageFromImage(decoded)
+
+	decoded, _, err = image.Decode(bytes.NewReader(countdownBytes))
+	if err != nil {
+		log.Fatal(err)
+	}
+	countdownImage = ebiten.NewImageFromImage(decoded)
+
+	decoded, _, err = image.Decode(bytes.NewReader(titleBytes))
+	if err != nil {
+		log.Fatal(err)
+	}
+	titleImage = ebiten.NewImageFromImage(decoded)
+
+	decoded, _, err = image.Decode(bytes.NewReader(gameoverBytes))
+	if err != nil {
+		log.Fatal(err)
+	}
+	gameoverImage = ebiten.NewImageFromImage(decoded)
 }

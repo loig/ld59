@@ -20,8 +20,10 @@ package main
 type gameState int
 
 const (
-	gameStateLevelExposition gameState = iota
+	gameStateTitle gameState = iota
+	gameStateLevelExposition
 	gameStateLevelResolution
+	gameStateGameOver
 )
 
 type game struct {
@@ -32,7 +34,7 @@ type game struct {
 
 func createGame() game {
 	g := game{
-		state:       gameState(gameStateLevelExposition),
+		state:       gameStateTitle,
 		levelNumber: 1,
 	}
 	g.level.getNew(0)

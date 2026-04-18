@@ -18,15 +18,31 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package main
 
 const (
-	globalScreenWidth  = 800
-	globalScreenHeight = 600
+	globalScreenWidth  = 400
+	globalScreenHeight = 400
 
 	// level drawing
-	globalGridX    = 100
-	globalGridY    = 100
-	globalCellSize = 64
+	globalGridX     = 13
+	globalGridY     = 62
+	globalCellSize  = 64
+	globalLevelNumX = 110
+	globalLevelNumY = 10
 
 	// game characteristics
 	globalLevelSizeX = 5
 	globalLevelSizeY = 5
+
+	// balancing
+	globalMaxFramePerLevel = 600
+	globalMaxFrameDecrease = 10
+	globalFrameStep        = 2
 )
+
+// balancing
+
+var globalSignalLenghtUpdate = [6]int{
+	3, 5, 7, 15, 30, 50,
+}
+var globalFramesPerSignalElement = [7]int{
+	60, 40, 35, 30, 25, 20, 15,
+}

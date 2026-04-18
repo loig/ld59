@@ -39,5 +39,10 @@ type level struct {
 	playerX, playerY, playerProgress int
 	cursorX, cursorY                 int
 	//moveDistance                     int
-	moveRecord []playerState
+	moveRecord                                   []playerState
+	frames, framesLeft                           int
+	signalElementFrames, signalElementFramesLeft int
+	signalPosition                               int
+	signalX, signalY                             int
+	expositionDone                               bool
 }

@@ -27,19 +27,45 @@ func (l *level) getNew(levelNumber int) {
 	//l.moveDistance = 0
 	l.moveRecord = l.moveRecord[:0]
 
-	l.generateSignal()
+	l.generateSignal(levelNumber)
 
 	l.playerX, l.playerY = l.generateGrid()
+
+	l.frames = getFrames(l.frames, levelNumber)
+	l.framesLeft = l.frames
+
+	l.signalElementFrames = globalFramesPerSignalElement[len(l.signal)-1]
+	l.signalElementFramesLeft = l.signalElementFrames
+	l.signalPosition = 0
+	l.expositionDone = false
+	l.signalX = (globalScreenWidth - globalCellSize) / 2
+	l.signalY = (globalScreenHeight - globalCellSize) / 2
 }
 
-func (l *level) generateSignal() {
-	if len(l.signal) == 0 {
-		l.signal = make([]signalElement, 3)
+func (l *level) generateSignal(levelNumber int) {
+
+	signalLen := 1
+	for _, num := range globalSignalLenghtUpdate {
+		if levelNumber < num {
+			break
+		}
+		signalLen++
 	}
 
-	for pos := 0; pos < len(l.signal); pos++ {
-		l.signal[pos] = signalElement(rand.Intn(signalElementNum))
+	if len(l.signal) == 0 {
+		l.signal = make([]signalElement, signalLen)
 	}
+
+	for pos := 0; pos < signalLen; pos++ {
+		newSignalElement := signalElement(rand.Intn(signalElementNum))
+		if pos < len(l.signal) {
+			l.signal[pos] = newSignalElement
+		} else {
+			l.signal = append(l.signal, newSignalElement)
+		}
+	}
+
+	l.signal = l.signal[:signalLen]
 }
 
 func (l *level) generateGrid() (startX, startY int) {
@@ -123,20 +149,27 @@ func (l *level) generateGrid() (startX, startY int) {
 				}
 
 				// avoid creating a new solution from scratch
+				lastInSignal := l.signal[len(l.signal)-1]
 				if len(l.signal) > 1 {
-					lastInSignal := l.signal[len(l.signal)-1]
 					beforeLastInSignal := l.signal[len(l.signal)-2]
 					if l.isReachable(lastInSignal, x, y) {
 						if allowed[beforeLastInSignal] {
 							numAllowed--
+							allowed[beforeLastInSignal] = false
 						}
-						allowed[beforeLastInSignal] = false
 					}
 					if l.isReachable(beforeLastInSignal, x, y) {
 						if allowed[lastInSignal] {
 							numAllowed--
+							allowed[lastInSignal] = false
 						}
-						allowed[lastInSignal] = false
+					}
+				} else {
+					if x == startX || y == startY {
+						if allowed[lastInSignal] {
+							numAllowed--
+							allowed[lastInSignal] = false
+						}
 					}
 				}
 

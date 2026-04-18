@@ -26,21 +26,37 @@ import (
 
 // Drawing a level
 func (l level) draw(screen *ebiten.Image) {
-	lBack := true
+
+	drawBack(screen)
+
+	//lBack := true
 	for y, line := range l.grid {
-		back := lBack
+		//back := lBack
 		for x, s := range line {
-			drawBack(x, y, back, screen)
+			//drawBack(x, y, back, screen)
 			s.draw(x, y, l.cursorX == x && l.cursorY == y, screen)
-			back = !back
+			//back = !back
 		}
-		lBack = !lBack
+		//lBack = !lBack
 	}
 
 	drawPlayer(l.playerX, l.playerY, screen)
 	drawCursor(l.cursorX, l.cursorY, xor(l.cursorX == l.playerX, l.cursorY == l.playerY), screen)
+
+	drawCountDown(l.framesLeft, l.frames, screen)
 }
 
+func drawCountDown(left, total int, screen *ebiten.Image) {
+	ySize := (globalScreenHeight * left) / total
+
+	op := &ebiten.DrawImageOptions{}
+	imX := 0
+	imY := 0
+	screen.DrawImage(countdownImage.SubImage(image.Rect(imX, imY, imX+globalScreenWidth, imY+ySize)).(*ebiten.Image), op)
+
+}
+
+/*
 func drawBack(x, y int, back bool, screen *ebiten.Image) {
 	xx := float64(globalGridX + x*globalCellSize)
 	yy := float64(globalGridY + y*globalCellSize)
@@ -53,6 +69,13 @@ func drawBack(x, y int, back bool, screen *ebiten.Image) {
 	}
 	imY := globalCellSize
 	screen.DrawImage(images.SubImage(image.Rect(imX, imY, imX+globalCellSize, imY+globalCellSize)).(*ebiten.Image), op)
+}
+*/
+
+func drawBack(screen *ebiten.Image) {
+
+	op := &ebiten.DrawImageOptions{}
+	screen.DrawImage(fondImage, op)
 }
 
 func (s signalElement) draw(x, y int, big bool, screen *ebiten.Image) {
@@ -85,7 +108,7 @@ func drawPlayer(x, y int, screen *ebiten.Image) {
 }
 
 func drawCursor(x, y int, reachable bool, screen *ebiten.Image) {
-	if reachable {
+	if reachable && x >= 0 && x < globalLevelSizeX && y >= 0 && y < globalLevelSizeY {
 		xx := globalGridX + x*globalCellSize
 		yy := globalGridY + y*globalCellSize
 
@@ -136,6 +159,17 @@ func drawMoveDistance(x, y, direction int, screen *ebiten.Image) {
 	screen.DrawImage(images.SubImage(image.Rect(imX, imY, imX+globalCellSize, imY+globalCellSize)).(*ebiten.Image), op)
 }
 */
+
+// Updating level
+func (l *level) update(mouseX, mouseY int) (levelFinished, dead bool) {
+
+	l.framesLeft--
+	if l.framesLeft == 0 {
+		return false, true
+	}
+
+	return l.updatePlayer(mouseX, mouseY), false
+}
 
 // Updating player position
 func (l *level) updatePlayer(mouseX, mouseY int) (levelFinished bool) {

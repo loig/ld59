@@ -22,9 +22,24 @@ import "github.com/hajimehoshi/ebiten/v2"
 func (g *game) Draw(screen *ebiten.Image) {
 
 	switch g.state {
+	case gameStateTitle:
+		drawTitle(screen)
 	case gameStateLevelExposition:
 		g.level.drawExposition(screen)
 	case gameStateLevelResolution:
 		g.level.draw(screen)
+		drawNumberAt(globalLevelNumX, globalLevelNumY, g.levelNumber, screen)
+	case gameStateGameOver:
+		drawGameOver(screen)
 	}
+}
+
+func drawTitle(screen *ebiten.Image) {
+	op := &ebiten.DrawImageOptions{}
+	screen.DrawImage(titleImage, op)
+}
+
+func drawGameOver(screen *ebiten.Image) {
+	op := &ebiten.DrawImageOptions{}
+	screen.DrawImage(gameoverImage, op)
 }
