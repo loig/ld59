@@ -17,20 +17,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 package main
 
-func (g *game) Update() error {
+import (
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
+)
 
-	switch g.state {
-	case gameStateLevelExposition:
-		if updateExposition() {
-			g.state = gameStateLevelResolution
-		}
-	case gameStateLevelResolution:
-		if g.level.updatePlayer() {
-			g.level.getNew(g.levelNumber)
-			g.levelNumber++
-			g.state = gameStateLevelExposition
-		}
+func (l level) drawExposition(screen *ebiten.Image) {
+
+	for pos, element := range l.signal {
+		element.draw(pos, 0, screen)
 	}
 
-	return nil
+}
+
+func updateExposition() (done bool) {
+	return inpututil.IsKeyJustPressed(ebiten.KeyEnter)
 }

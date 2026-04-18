@@ -21,5 +21,10 @@ import "github.com/hajimehoshi/ebiten/v2"
 
 func (g *game) Draw(screen *ebiten.Image) {
 
-	g.level.draw(screen)
+	switch g.state {
+	case gameStateLevelExposition:
+		g.level.drawExposition(screen)
+	case gameStateLevelResolution:
+		g.level.draw(screen)
+	}
 }

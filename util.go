@@ -17,20 +17,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 package main
 
-func (g *game) Update() error {
+import "github.com/hajimehoshi/ebiten/v2"
 
-	switch g.state {
-	case gameStateLevelExposition:
-		if updateExposition() {
-			g.state = gameStateLevelResolution
-		}
-	case gameStateLevelResolution:
-		if g.level.updatePlayer() {
-			g.level.getNew(g.levelNumber)
-			g.levelNumber++
-			g.state = gameStateLevelExposition
-		}
-	}
+func isWheelUpJustUsed() bool {
+	_, dy := ebiten.Wheel()
+	return dy > 0
+}
 
-	return nil
+func isWheelDownJustUsed() bool {
+	_, dy := ebiten.Wheel()
+	return dy < 0
 }

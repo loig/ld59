@@ -17,12 +17,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 package main
 
+type gameState int
+
+const (
+	gameStateLevelExposition gameState = iota
+	gameStateLevelResolution
+)
+
 type game struct {
-	level level
+	state       gameState
+	level       level
+	levelNumber int
 }
 
 func createGame() game {
-	return game{
-		level: createLevel(),
+	g := game{
+		state:       gameState(gameStateLevelExposition),
+		levelNumber: 1,
 	}
+	g.level.getNew(0)
+	return g
 }
