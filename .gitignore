@@ -33,3 +33,6 @@ go.work.sum
 
 # binary
 ld59
+
+# gimp files
+*.xcf

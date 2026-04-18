@@ -17,16 +17,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 package main
 
-const (
-	globalScreenWidth  = 800
-	globalScreenHeight = 600
+import (
+	"bytes"
+	_ "embed"
+	"image"
+	_ "image/png"
+	"log"
 
-	// level drawing
-	globalGridX    = 100
-	globalGridY    = 100
-	globalCellSize = 64
-
-	// game characteristics
-	globalLevelSizeX = 5
-	globalLevelSizeY = 5
+	"github.com/hajimehoshi/ebiten/v2"
 )
+
+//go:embed assets/images.png
+var imagesBytes []byte
+var images *ebiten.Image
+
+// load images
+func loadImages() {
+	decoded, _, err := image.Decode(bytes.NewReader(imagesBytes))
+	if err != nil {
+		log.Fatal(err)
+	}
+	images = ebiten.NewImageFromImage(decoded)
+}

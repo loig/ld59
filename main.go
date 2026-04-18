@@ -25,6 +25,8 @@ import (
 
 func main() {
 
+	loadImages()
+
 	g := createGame()
 
 	ebiten.SetWindowTitle("Ludum Dare 59")

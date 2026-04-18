@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package main
 
 import (
+	"image"
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -40,26 +41,12 @@ func (l level) draw(screen *ebiten.Image) {
 func (s signalElement) draw(x, y int, screen *ebiten.Image) {
 	xx := globalGridX + x*globalCellSize
 	yy := globalGridY + y*globalCellSize
-	col := color.RGBA{R: 0, G: 0, B: 0, A: 255}
-	switch s {
-	case 0:
-		col.R = 255
-	case 1:
-		col.B = 255
-	case 2:
-		col.G = 255
-	case 3:
-		col.R = 255
-		col.B = 255
-	case 4:
-		col.B = 255
-		col.G = 255
-	case 5:
-		col.G = 255
-		col.R = 255
-	}
 
-	vector.FillRect(screen, float32(xx), float32(yy), globalCellSize, globalCellSize, col, false)
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Translate(float64(xx), float64(yy))
+	imX := int(globalCellSize * s)
+	imY := 0
+	screen.DrawImage(images.SubImage(image.Rect(imX, imY, imX+globalCellSize, imY+globalCellSize)).(*ebiten.Image), op)
 }
 
 func drawPlayer(x, y int, screen *ebiten.Image) {
@@ -74,32 +61,38 @@ func (l level) drawMoveDistances(x, y, distance int, screen *ebiten.Image) {
 
 	// up
 	if y-distance >= 0 {
-		drawMoveDistance(x, y-distance, screen)
+		drawMoveDistance(x, y-distance, 0, screen)
 	}
 
 	// down
 	if y+distance < len(l.grid) {
-		drawMoveDistance(x, y+distance, screen)
+		drawMoveDistance(x, y+distance, 2, screen)
 	}
 
 	// left
 	if x-distance >= 0 {
-		drawMoveDistance(x-distance, y, screen)
+		drawMoveDistance(x-distance, y, 3, screen)
 	}
 
 	// right
 	if x+distance < len(l.grid[l.playerY]) {
-		drawMoveDistance(x+distance, y, screen)
+		drawMoveDistance(x+distance, y, 1, screen)
 	}
 
 }
 
-func drawMoveDistance(x, y int, screen *ebiten.Image) {
+func drawMoveDistance(x, y, direction int, screen *ebiten.Image) {
 
-	xx := globalGridX + x*globalCellSize + globalCellSize/4
-	yy := globalGridY + y*globalCellSize + globalCellSize/4
+	xx := globalGridX + x*globalCellSize
+	yy := globalGridY + y*globalCellSize
 
-	vector.FillRect(screen, float32(xx), float32(yy), globalCellSize/2, globalCellSize/2, color.Black, false)
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Translate(float64(xx), float64(yy))
+	imX := globalCellSize
+	imY := globalCellSize
+	screen.DrawImage(images.SubImage(image.Rect(imX, imY, imX+globalCellSize, imY+globalCellSize)).(*ebiten.Image), op)
+	imX += globalCellSize + direction*globalCellSize
+	screen.DrawImage(images.SubImage(image.Rect(imX, imY, imX+globalCellSize, imY+globalCellSize)).(*ebiten.Image), op)
 }
 
 // Updating player position
