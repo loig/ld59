@@ -25,4 +25,8 @@ const (
 	globalGridX    = 100
 	globalGridY    = 100
 	globalCellSize = 20
+
+	// game characteristics
+	globalLevelSizeX = 5
+	globalLevelSizeY = 5
 )

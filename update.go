@@ -17,6 +17,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 package main
 
+import (
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
+)
+
 func (g *game) Update() error {
 
 	switch g.state {
@@ -28,6 +33,10 @@ func (g *game) Update() error {
 		if g.level.updatePlayer() {
 			g.level.getNew(g.levelNumber)
 			g.levelNumber++
+			g.state = gameStateLevelExposition
+		}
+		if inpututil.IsKeyJustPressed(ebiten.KeyEnter) || inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+			g.level.getNew(g.levelNumber - 1)
 			g.state = gameStateLevelExposition
 		}
 	}

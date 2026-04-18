@@ -48,6 +48,15 @@ func (s signalElement) draw(x, y int, screen *ebiten.Image) {
 		col.B = 255
 	case 2:
 		col.G = 255
+	case 3:
+		col.R = 255
+		col.B = 255
+	case 4:
+		col.B = 255
+		col.G = 255
+	case 5:
+		col.G = 255
+		col.R = 255
 	}
 
 	vector.FillRect(screen, float32(xx), float32(yy), globalCellSize, globalCellSize, col, false)
@@ -171,6 +180,7 @@ func (l *level) revertMove() {
 		l.playerX = record.lastX
 		l.playerY = record.lastY
 		l.playerProgress = record.lastProgress
+		l.moveDistance = 0
 	}
 }
 

@@ -20,8 +20,8 @@ package main
 type signalElement int
 
 const (
-	signalElementMax  = 2
-	signalElementNum  = signalElementMax + 1
+	signalElementNum  = 6
+	signalElementMax  = signalElementNum - 1
 	signalElementNone = signalElementNum + 1
 )
 
@@ -35,7 +35,7 @@ type playerState struct {
 
 type level struct {
 	signal                           []signalElement
-	grid                             [][]signalElement
+	grid                             [globalLevelSizeY][globalLevelSizeX]signalElement
 	playerX, playerY, playerProgress int
 	moveDistance                     int
 	moveRecord                       []playerState

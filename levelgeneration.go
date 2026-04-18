@@ -43,35 +43,142 @@ func (l *level) generateSignal() {
 }
 
 func (l *level) generateGrid() (startX, startY int) {
-	if len(l.grid) == 0 {
-		l.grid = make([][]signalElement, 0)
+
+	// Step 0: erase grid
+	for y := 0; y < globalLevelSizeY; y++ {
+		for x := 0; x < globalLevelSizeX; x++ {
+			l.grid[y][x] = signalElementNone
+		}
 	}
 
-	gridSize := rand.Intn(10) + 5
-	log.Print(gridSize)
+	// Step 1: generate solution
+	startX = rand.Intn(globalLevelSizeX)
+	startY = rand.Intn(globalLevelSizeY)
 
-	startX = gridSize / 2
-	startY = gridSize / 2
+	currentX, currentY := startX, startY
 
-	for y := 0; y < gridSize; y++ {
-		if len(l.grid) < y+1 {
-			l.grid = append(l.grid, make([]signalElement, 0))
-		}
-		for x := 0; x < gridSize; x++ {
-			element := signalElement(rand.Intn(signalElementNum))
-			if x == startX && y == startY {
-				element = signalElementNone
-			}
-			if len(l.grid[y]) < x+1 {
-				l.grid[y] = append(l.grid[y], element)
+	// record data for avoiding duplicate solutions later on
+	forbidenSignalElementPerX := make(map[int][]signalElement)
+	forbidenSignalElementPerY := make(map[int][]signalElement)
+
+	// number of possible moves from a position while staying in the grid
+	// including the position itself, counted twice, for simplicity and for
+	// slightly higher chance that steps of a solution are close in the grid
+	numMoves := globalLevelSizeX + globalLevelSizeY
+
+	// this is not robust: avoid long signals (anything shorter than globalLevelSizeX + globalLevelSizeY should be safe)
+	for _, element := range l.signal {
+		next := rand.Intn(numMoves)
+		for try := 0; try < numMoves; try++ {
+			// check if the position corresponding to next is suitable
+			newX := currentX
+			newY := currentY
+			if next < globalLevelSizeX {
+				newX = next
 			} else {
-				l.grid[y][x] = element
+				newY = next - globalLevelSizeX
 			}
+			if (newX != startX || newY != startY) &&
+				(newX != currentX || newY != currentY) &&
+				l.grid[newY][newX] == signalElementNone {
+				// this is a suitable position
+				// record info in order to prevent branching at this point in the solution from the later generated remaining of the grid
+				if currentX != startX || currentY != startY {
+					forbidenSignalElementPerX[newX] = append(forbidenSignalElementPerX[newX], l.grid[currentY][currentX])
+					forbidenSignalElementPerY[newY] = append(forbidenSignalElementPerY[newY], l.grid[currentY][currentX])
+				}
+				// setup the solution
+				l.grid[newY][newX] = element
+				currentX = newX
+				currentY = newY
+				break
+			}
+			next = (next + 1) % numMoves
 		}
-		l.grid[y] = l.grid[y][:gridSize]
 	}
 
-	l.grid = l.grid[:gridSize]
+	// Step 2: generate remaining of the grid, while avoiding multiple solutions
+	for y := 0; y < globalLevelSizeY; y++ {
+		for x := 0; x < globalLevelSizeX; x++ {
+			if l.grid[y][x] == signalElementNone && (x != startX || y != startY) {
+				// need to add an element
+				allowed := make([]bool, signalElementNum)
+				for i := 0; i < len(allowed); i++ {
+					allowed[i] = true
+				}
+				numAllowed := signalElementNum
+
+				// avoid branching into the existing solution
+				for s := range forbidenSignalElementPerX[x] {
+					if allowed[s] {
+						allowed[s] = false
+						numAllowed--
+					}
+				}
+				for s := range forbidenSignalElementPerY[y] {
+					if allowed[s] {
+						allowed[s] = false
+						numAllowed--
+					}
+				}
+
+				// avoid creating a new solution from scratch
+				if len(l.signal) > 1 {
+					lastInSignal := l.signal[len(l.signal)-1]
+					beforeLastInSignal := l.signal[len(l.signal)-2]
+					if l.isReachable(lastInSignal, x, y) {
+						if allowed[beforeLastInSignal] {
+							numAllowed--
+						}
+						allowed[beforeLastInSignal] = false
+					}
+					if l.isReachable(beforeLastInSignal, x, y) {
+						if allowed[lastInSignal] {
+							numAllowed--
+						}
+						allowed[lastInSignal] = false
+					}
+				}
+
+				if numAllowed <= 0 {
+					log.Print("Oups, pas assez d'éléments possibles pour cette position", x, y)
+					l.grid[y][x] = signalElementNone
+					continue
+				}
+
+				// choose element to add
+				numElement := rand.Intn(numAllowed)
+				pos := 0
+				for numElement > 0 || !allowed[pos] {
+					if allowed[pos] {
+						numElement--
+					}
+					pos++
+				}
+				l.grid[y][x] = signalElement(pos)
+
+			}
+		}
+	}
 
 	return
+}
+
+// check if signal element is directly reachable from position (x, y)
+func (l level) isReachable(s signalElement, x, y int) bool {
+	for yy := 0; yy < globalLevelSizeY; yy++ {
+		if yy != y {
+			if l.grid[yy][x] == s {
+				return true
+			}
+		}
+	}
+	for xx := 0; xx < globalLevelSizeX; xx++ {
+		if xx != x {
+			if l.grid[y][xx] == s {
+				return true
+			}
+		}
+	}
+	return false
 }

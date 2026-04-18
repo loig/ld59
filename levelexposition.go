@@ -31,5 +31,5 @@ func (l level) drawExposition(screen *ebiten.Image) {
 }
 
 func updateExposition() (done bool) {
-	return inpututil.IsKeyJustPressed(ebiten.KeyEnter)
+	return inpututil.IsKeyJustPressed(ebiten.KeyEnter) || inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft)
 }
