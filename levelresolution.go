@@ -200,7 +200,17 @@ func (l *level) update(mouseX, mouseY int) (levelFinished, dead, playMove, playM
 	xTrail = globalGridX + l.playerX*globalCellSize
 	yTrail = globalGridY + l.playerY*globalCellSize
 
+	if !l.finished && !l.dead && l.levelAppearsDone {
+		l.framesLeft--
+		if l.framesLeft <= 0 {
+			l.dead = true
+			l.levelAppearsFrames = globalLevelOpacityFrames + globalEndLevelWaitFrames
+			return false, false, playMove, playMiss, playNote, note, xTrail, yTrail
+		}
+	}
+
 	if len(l.moveAnimations) > 0 {
+
 		current := l.moveAnimations[len(l.moveAnimations)-1]
 		x, y := current.xTo, current.yTo
 		xTrail = current.posX
@@ -273,13 +283,6 @@ func (l *level) update(mouseX, mouseY int) (levelFinished, dead, playMove, playM
 		return false, false, playMove, playMiss, playNote, note, xTrail, yTrail
 	}
 
-	l.framesLeft--
-	if l.framesLeft == 0 {
-		l.dead = true
-		l.levelAppearsFrames = globalLevelOpacityFrames + globalEndLevelWaitFrames
-		return false, false, playMove, playMiss, playNote, note, xTrail, yTrail
-	}
-
 	oldPlayMiss := playMiss
 	l.finished, playMiss = l.updatePlayer(mouseX, mouseY)
 	playMiss = playMiss || oldPlayMiss
@@ -331,7 +334,15 @@ func (l *level) updatePlayer(mouseX, mouseY int) (levelFinished, playMiss bool) 
 }
 
 func (l *level) movePlayer(newPosX, newPosY int) (levelFinished bool) {
-	possibleMove := newPosX == l.playerX || newPosY == l.playerY
+
+	possibleMove := len(l.moveAnimations) <= 3
+
+	// move is not possible
+	if !possibleMove {
+		return
+	}
+
+	possibleMove = newPosX == l.playerX || newPosY == l.playerY
 
 	// move is not possible
 	if !possibleMove {

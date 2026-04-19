@@ -37,3 +37,5 @@ web/*
 
 # gimp files
 *.xcf
+
+*.zip
