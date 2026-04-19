@@ -38,8 +38,8 @@ func (l *level) getNew(levelNumber int) {
 	l.signalElementFramesLeft = l.signalElementFrames
 	l.signalPosition = 0
 	l.expositionDone = false
-	l.signalX = (globalScreenWidth - globalCellSize) / 2
-	l.signalY = (globalScreenHeight - globalCellSize) / 2
+	l.signalX = globalLevelSizeX / 2
+	l.signalY = globalLevelSizeY / 2
 }
 
 func (l *level) generateSignal(levelNumber int) {

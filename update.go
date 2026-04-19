@@ -29,6 +29,10 @@ func (g *game) Update() error {
 	switch g.state {
 	case gameStateTitle:
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+			g.state = gameStateHowTo
+		}
+	case gameStateHowTo:
+		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 			g.state = gameStateLevelExposition
 		}
 	case gameStateLevelExposition:

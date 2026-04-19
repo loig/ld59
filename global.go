@@ -22,11 +22,15 @@ const (
 	globalScreenHeight = 400
 
 	// level drawing
-	globalGridX     = 13
-	globalGridY     = 62
-	globalCellSize  = 64
-	globalLevelNumX = 110
-	globalLevelNumY = 10
+	globalGridX        = 13
+	globalGridY        = 62
+	globalCellSize     = 64
+	globalLevelNumX    = 110
+	globalLevelNumY    = 10
+	globalEndLevelNumX = 270
+	globalEndLevelNumY = 125
+	globalTutoPlayerX  = 90
+	globalTutoPlayerY  = 235
 
 	// game characteristics
 	globalLevelSizeX = 5

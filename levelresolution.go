@@ -100,6 +100,10 @@ func drawPlayer(x, y int, screen *ebiten.Image) {
 	xx := globalGridX + x*globalCellSize
 	yy := globalGridY + y*globalCellSize
 
+	freelyDrawPlayer(xx, yy, screen)
+}
+
+func freelyDrawPlayer(xx, yy int, screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(float64(xx), float64(yy))
 	imX := 0

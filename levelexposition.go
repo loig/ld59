@@ -26,10 +26,13 @@ import (
 
 func (l level) drawExposition(screen *ebiten.Image) {
 
+	drawBack(screen)
+
 	if l.signalPosition < len(l.signal) {
-		l.signal[l.signalPosition].drawFreely(l.signalX, l.signalY, false, screen)
+		l.signal[l.signalPosition].draw(l.signalX, l.signalY, false, screen)
 	}
 
+	drawCountDown(l.framesLeft, l.frames, screen)
 }
 
 func (l *level) updateExposition() (done bool) {
@@ -65,8 +68,20 @@ func (s signalElement) drawFreely(x, y int, big bool, screen *ebiten.Image) {
 }
 
 func getNewSignalPlace(x, y int) (xx, yy int) {
-	return farButNotMuch(x, globalScreenWidth),
-		farButNotMuch(y, globalScreenHeight)
+	add := rand.Intn(globalLevelSizeX*globalLevelSizeY - 1)
+	for add > 0 {
+		x++
+		if x >= globalLevelSizeX {
+			x = 0
+			y = (y + 1) % globalLevelSizeY
+		}
+		add--
+	}
+	return x, y
+	/*
+		return farButNotMuch(x, globalScreenWidth),
+			farButNotMuch(y, globalScreenHeight)
+	*/
 }
 
 func farButNotMuch(pos, posMax int) (newPos int) {

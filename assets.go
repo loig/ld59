@@ -51,6 +51,10 @@ var titleImage *ebiten.Image
 var gameoverBytes []byte
 var gameoverImage *ebiten.Image
 
+//go:embed assets/howto.png
+var howtoBytes []byte
+var howtoImage *ebiten.Image
+
 // load images
 func loadImages() {
 	decoded, _, err := image.Decode(bytes.NewReader(imagesBytes))
@@ -88,4 +92,10 @@ func loadImages() {
 		log.Fatal(err)
 	}
 	gameoverImage = ebiten.NewImageFromImage(decoded)
+
+	decoded, _, err = image.Decode(bytes.NewReader(howtoBytes))
+	if err != nil {
+		log.Fatal(err)
+	}
+	howtoImage = ebiten.NewImageFromImage(decoded)
 }

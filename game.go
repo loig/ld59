@@ -21,6 +21,7 @@ type gameState int
 
 const (
 	gameStateTitle gameState = iota
+	gameStateHowTo
 	gameStateLevelExposition
 	gameStateLevelResolution
 	gameStateGameOver
