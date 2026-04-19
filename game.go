@@ -25,14 +25,22 @@ const (
 	gameStateLevelExposition
 	gameStateLevelResolution
 	gameStateGameOver
+	gameStateGetRanking
+	gameStateDisplayRanking
 )
 
 type game struct {
-	state       gameState
-	level       level
-	levelNumber int
-	soundEngine soundEngine
-	playerTrail trail
+	state        gameState
+	level        level
+	levelNumber  int
+	soundEngine  soundEngine
+	playerTrail  trail
+	rankingChan  chan ranking
+	ranking      ranking
+	mustRecord   bool
+	name         [3]uint8
+	playerRank   int
+	selectedChar int
 }
 
 func createGame() game {
@@ -42,5 +50,8 @@ func createGame() game {
 	}
 	g.level.getNew(0)
 	g.soundEngine = newSoundEngine()
+	g.rankingChan = make(chan ranking, 1)
+	g.name = stringToName("YOU")
+	g.playerRank = 11
 	return g
 }

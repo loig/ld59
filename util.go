@@ -97,3 +97,43 @@ func getFrames(lastFrames, levelNumber int) int {
 
 	return lastFrames
 }
+
+// must be capitalized and without accent
+func drawWordAt(x, y int, s string, up int, screen *ebiten.Image) {
+
+	upDist := -5.0
+
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Translate(float64(x), float64(y))
+
+	for numChar, character := range s {
+
+		if numChar == up {
+			op.GeoM.Translate(0, upDist)
+		}
+
+		digit := uint8(character) - 65
+
+		imX := int(digit) * 32
+		imY := 0
+		screen.DrawImage(alphabetImage.SubImage(image.Rect(imX, imY, imX+32, imY+32)).(*ebiten.Image), op)
+		op.GeoM.Translate(32, 0)
+
+		if numChar == up {
+			op.GeoM.Translate(0, -upDist)
+		}
+	}
+
+}
+
+// switch from names to strings
+func nameToString(n [3]uint8) string {
+	return string(n[0]+65) + string(n[1]+65) + string(n[2]+65)
+}
+
+// string must have 3 chars (capitals, no accent)
+func stringToName(s string) [3]uint8 {
+	return [3]uint8{
+		uint8(s[0]) - 65, uint8(s[1]) - 65, uint8(s[2]) - 65,
+	}
+}

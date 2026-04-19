@@ -55,6 +55,26 @@ var gameoverImage *ebiten.Image
 var howtoBytes []byte
 var howtoImage *ebiten.Image
 
+//go:embed assets/ranking-waiting.png
+var rank1Bytes []byte
+var rank1Image *ebiten.Image
+
+//go:embed assets/ranking-display.png
+var rank2Bytes []byte
+var rank2Image *ebiten.Image
+
+//go:embed assets/ranking-display-normal.png
+var rank3Bytes []byte
+var rank3Image *ebiten.Image
+
+//go:embed assets/alphabet.png
+var alphabetBytes []byte
+var alphabetImage *ebiten.Image
+
+//go:embed assets/score.png
+var scoreBytes []byte
+var scoreImage *ebiten.Image
+
 // load images
 func loadImages() {
 	decoded, _, err := image.Decode(bytes.NewReader(imagesBytes))
@@ -98,4 +118,34 @@ func loadImages() {
 		log.Fatal(err)
 	}
 	howtoImage = ebiten.NewImageFromImage(decoded)
+
+	decoded, _, err = image.Decode(bytes.NewReader(rank1Bytes))
+	if err != nil {
+		log.Fatal(err)
+	}
+	rank1Image = ebiten.NewImageFromImage(decoded)
+
+	decoded, _, err = image.Decode(bytes.NewReader(rank2Bytes))
+	if err != nil {
+		log.Fatal(err)
+	}
+	rank2Image = ebiten.NewImageFromImage(decoded)
+
+	decoded, _, err = image.Decode(bytes.NewReader(rank3Bytes))
+	if err != nil {
+		log.Fatal(err)
+	}
+	rank3Image = ebiten.NewImageFromImage(decoded)
+
+	decoded, _, err = image.Decode(bytes.NewReader(alphabetBytes))
+	if err != nil {
+		log.Fatal(err)
+	}
+	alphabetImage = ebiten.NewImageFromImage(decoded)
+
+	decoded, _, err = image.Decode(bytes.NewReader(scoreBytes))
+	if err != nil {
+		log.Fatal(err)
+	}
+	scoreImage = ebiten.NewImageFromImage(decoded)
 }

@@ -45,7 +45,7 @@ const (
 	globalMoveFrames              = 8
 
 	// balancing
-	globalMaxFramePerLevel = 600
+	globalMaxFramePerLevel = 800
 	globalMaxFrameDecrease = 10
 	globalFrameStep        = 2
 )
@@ -53,7 +53,7 @@ const (
 // balancing
 
 var globalSignalLenghtUpdate = [6]int{
-	3, 5, 7, 15, 30, 50,
+	3, 6, 9, 12, 15, 20,
 }
 var globalFramesPerSignalElement = [7]int{
 	60, 50, 40, 35, 30, 25, 20,

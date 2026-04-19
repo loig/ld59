@@ -37,6 +37,10 @@ func (g *game) Draw(screen *ebiten.Image) {
 	case gameStateGameOver:
 		drawGameOver(screen)
 		drawNumberAt(globalEndLevelNumX, globalEndLevelNumY, g.levelNumber, screen)
+	case gameStateGetRanking:
+		drawRanking1(screen)
+	case gameStateDisplayRanking:
+		g.drawRanking2(screen)
 	}
 }
 
@@ -53,4 +57,43 @@ func drawHowTo(screen *ebiten.Image) {
 func drawGameOver(screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 	screen.DrawImage(gameoverImage, op)
+}
+
+func drawRanking1(screen *ebiten.Image) {
+	op := &ebiten.DrawImageOptions{}
+	screen.DrawImage(rank1Image, op)
+}
+
+func (g game) drawRanking2(screen *ebiten.Image) {
+	op := &ebiten.DrawImageOptions{}
+
+	if g.mustRecord {
+		screen.DrawImage(rank2Image, op)
+	} else {
+		screen.DrawImage(rank3Image, op)
+	}
+
+	marginX := 30
+	marginY := 50
+	step := 35
+
+	for rank := 0; rank < min(g.ranking.numTop10Ok+1, 8); rank++ {
+		drawNumberAt(marginX, marginY+step*rank, rank+1, screen)
+		name := g.ranking.top10Names[rank]
+		up := 4
+		if rank+1 == g.playerRank {
+			name = nameToString(g.name)
+			up = g.selectedChar
+		}
+		drawWordAt(marginX+80, marginY+step*rank, name, up, screen)
+		drawNumberAt(marginX+200, marginY+step*rank, g.ranking.top10[rank], screen)
+
+		if rank+1 == g.playerRank {
+			op := &ebiten.DrawImageOptions{}
+			op.GeoM.Translate(float64(marginX+80), float64(marginY+step*rank))
+			screen.DrawImage(scoreImage, op)
+		}
+	}
+
+	drawNumberAt(marginX+230, marginY+step*8+5, g.ranking.numPlayed+1, screen)
 }
