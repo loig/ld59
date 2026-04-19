@@ -28,14 +28,32 @@ func (l level) drawExposition(screen *ebiten.Image) {
 
 	drawBack(screen)
 
-	if l.signalPosition < len(l.signal) {
-		l.signal[l.signalPosition].draw(l.signalX, l.signalY, false, screen)
+	if l.expositionReady && !l.expositionDone {
+		if l.signalPosition < len(l.signal) {
+			opacityPerCent := float32(1)
+			if l.signalElementFramesLeft < globalOpacityFrames {
+				opacityPerCent = float32(l.signalElementFramesLeft) / float32(globalOpacityFrames)
+			}
+			if l.signalElementFrames-l.signalElementFramesLeft < globalOpacityFrames {
+				opacityPerCent = float32(l.signalElementFrames-l.signalElementFramesLeft) / float32(globalOpacityFrames)
+			}
+			l.signal[l.signalPosition].draw(l.signalX, l.signalY, false, opacityPerCent, screen)
+		}
 	}
 
 	drawCountDown(l.framesLeft, l.frames, screen)
 }
 
 func (l *level) updateExposition() (done bool) {
+
+	if !l.expositionReady {
+		l.signalElementFramesLeft--
+		if l.signalElementFramesLeft <= 0 {
+			l.signalElementFramesLeft = l.signalElementFrames
+			l.expositionReady = true
+		}
+		return false
+	}
 
 	if !l.expositionDone {
 		l.signalElementFramesLeft--
@@ -45,9 +63,15 @@ func (l *level) updateExposition() (done bool) {
 			l.signalX, l.signalY = getNewSignalPlace(l.signalX, l.signalY)
 			l.expositionDone = l.signalPosition >= len(l.signal)
 		}
+
+		if l.expositionDone {
+			l.signalElementFramesLeft = globalFramesBeforeFirstSymbol
+		}
+		return false
 	}
 
-	return l.expositionDone
+	l.signalElementFramesLeft--
+	return l.signalElementFramesLeft <= 0
 }
 
 func (s signalElement) drawFreely(x, y int, big bool, screen *ebiten.Image) {

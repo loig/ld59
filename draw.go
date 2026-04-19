@@ -26,7 +26,7 @@ func (g *game) Draw(screen *ebiten.Image) {
 		drawTitle(screen)
 	case gameStateHowTo:
 		drawHowTo(screen)
-		freelyDrawPlayer(globalTutoPlayerX, globalTutoPlayerY, screen)
+		freelyDrawPlayer(globalTutoPlayerX, globalTutoPlayerY, 1, screen)
 	case gameStateLevelExposition:
 		g.level.drawExposition(screen)
 		drawNumberAt(globalLevelNumX, globalLevelNumY, g.levelNumber, screen)

@@ -35,11 +35,17 @@ func (l *level) getNew(levelNumber int) {
 	l.framesLeft = l.frames
 
 	l.signalElementFrames = globalFramesPerSignalElement[len(l.signal)-1]
-	l.signalElementFramesLeft = l.signalElementFrames
+	l.signalElementFramesLeft = globalFramesBeforeFirstSymbol
 	l.signalPosition = 0
 	l.expositionDone = false
+	l.expositionReady = false
 	l.signalX = globalLevelSizeX / 2
 	l.signalY = globalLevelSizeY / 2
+
+	l.levelAppearsFrames = globalFramesBeforeLevel
+
+	l.finished = false
+	l.dead = false
 }
 
 func (l *level) generateSignal(levelNumber int) {

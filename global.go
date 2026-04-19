@@ -36,6 +36,13 @@ const (
 	globalLevelSizeX = 5
 	globalLevelSizeY = 5
 
+	// times
+	globalFramesBeforeFirstSymbol = 40
+	globalFramesBeforeLevel       = 10
+	globalOpacityFrames           = 10
+	globalLevelOpacityFrames      = 20
+	globalEndLevelWaitFrames      = 30
+
 	// balancing
 	globalMaxFramePerLevel = 600
 	globalMaxFrameDecrease = 10
@@ -48,5 +55,5 @@ var globalSignalLenghtUpdate = [6]int{
 	3, 5, 7, 15, 30, 50,
 }
 var globalFramesPerSignalElement = [7]int{
-	60, 40, 35, 30, 25, 20, 15,
+	60, 50, 40, 35, 30, 25, 20,
 }

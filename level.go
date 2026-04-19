@@ -41,8 +41,12 @@ type level struct {
 	//moveDistance                     int
 	moveRecord                                   []playerState
 	frames, framesLeft                           int
+	levelAppearsFrames                           int
+	levelAppearsReady, levelAppearsDone          bool
 	signalElementFrames, signalElementFramesLeft int
 	signalPosition                               int
 	signalX, signalY                             int
 	expositionDone                               bool
+	expositionReady                              bool
+	finished, dead                               bool
 }

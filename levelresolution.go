@@ -27,6 +27,24 @@ import (
 // Drawing a level
 func (l level) draw(screen *ebiten.Image) {
 
+	opacity := float32(1)
+	if l.finished || l.dead {
+		opacity = 0
+		if l.levelAppearsDone {
+			opacity = 1
+			if l.levelAppearsFrames <= globalLevelOpacityFrames {
+				opacity = float32(l.levelAppearsFrames) / float32(globalLevelOpacityFrames)
+			}
+		}
+	} else {
+		if !l.levelAppearsReady {
+			opacity = 0
+		}
+		if l.levelAppearsReady && !l.levelAppearsDone {
+			opacity = float32(globalLevelOpacityFrames-l.levelAppearsFrames) / float32(globalLevelOpacityFrames)
+		}
+	}
+
 	drawBack(screen)
 
 	//lBack := true
@@ -34,14 +52,14 @@ func (l level) draw(screen *ebiten.Image) {
 		//back := lBack
 		for x, s := range line {
 			//drawBack(x, y, back, screen)
-			s.draw(x, y, l.cursorX == x && l.cursorY == y, screen)
+			s.draw(x, y, l.cursorX == x && l.cursorY == y, opacity, screen)
 			//back = !back
 		}
 		//lBack = !lBack
 	}
 
-	drawPlayer(l.playerX, l.playerY, screen)
-	drawCursor(l.cursorX, l.cursorY, xor(l.cursorX == l.playerX, l.cursorY == l.playerY), screen)
+	drawPlayer(l.playerX, l.playerY, opacity, screen)
+	drawCursor(l.cursorX, l.cursorY, xor(l.cursorX == l.playerX, l.cursorY == l.playerY), opacity, screen)
 
 	drawCountDown(l.framesLeft, l.frames, screen)
 }
@@ -78,7 +96,7 @@ func drawBack(screen *ebiten.Image) {
 	screen.DrawImage(fondImage, op)
 }
 
-func (s signalElement) draw(x, y int, big bool, screen *ebiten.Image) {
+func (s signalElement) draw(x, y int, big bool, opacity float32, screen *ebiten.Image) {
 	xx := float64(globalGridX + x*globalCellSize)
 	yy := float64(globalGridY + y*globalCellSize)
 
@@ -90,29 +108,31 @@ func (s signalElement) draw(x, y int, big bool, screen *ebiten.Image) {
 		op.GeoM.Scale(scaleFactor, scaleFactor)
 	}
 	op.GeoM.Translate(xx, yy)
+	op.ColorScale.ScaleAlpha(opacity)
 	imX := int(globalCellSize * s)
 	imY := 0
 	screen.DrawImage(images.SubImage(image.Rect(imX, imY, imX+globalCellSize, imY+globalCellSize)).(*ebiten.Image), op)
 }
 
-func drawPlayer(x, y int, screen *ebiten.Image) {
+func drawPlayer(x, y int, opacity float32, screen *ebiten.Image) {
 
 	xx := globalGridX + x*globalCellSize
 	yy := globalGridY + y*globalCellSize
 
-	freelyDrawPlayer(xx, yy, screen)
+	freelyDrawPlayer(xx, yy, opacity, screen)
 }
 
-func freelyDrawPlayer(xx, yy int, screen *ebiten.Image) {
+func freelyDrawPlayer(xx, yy int, opacity float32, screen *ebiten.Image) {
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(float64(xx), float64(yy))
+	op.ColorScale.ScaleAlpha(opacity)
 	imX := 0
 	imY := globalCellSize
 	screen.DrawImage(images.SubImage(image.Rect(imX, imY, imX+globalCellSize, imY+globalCellSize)).(*ebiten.Image), op)
 }
 
-func drawCursor(x, y int, reachable bool, screen *ebiten.Image) {
-	if reachable && x >= 0 && x < globalLevelSizeX && y >= 0 && y < globalLevelSizeY {
+func drawCursor(x, y int, reachable bool, opacity float32, screen *ebiten.Image) {
+	if opacity >= 1 && reachable && x >= 0 && x < globalLevelSizeX && y >= 0 && y < globalLevelSizeY {
 		xx := globalGridX + x*globalCellSize
 		yy := globalGridY + y*globalCellSize
 
@@ -167,12 +187,56 @@ func drawMoveDistance(x, y, direction int, screen *ebiten.Image) {
 // Updating level
 func (l *level) update(mouseX, mouseY int) (levelFinished, dead bool) {
 
-	l.framesLeft--
-	if l.framesLeft == 0 {
-		return false, true
+	if l.finished || l.dead {
+		if l.levelAppearsDone {
+			l.levelAppearsFrames--
+			if l.levelAppearsFrames <= 0 {
+				l.levelAppearsDone = false
+				l.levelAppearsFrames = globalFramesBeforeLevel
+			}
+			return false, false
+		}
+		if l.levelAppearsReady {
+			l.levelAppearsFrames--
+			if l.levelAppearsFrames <= 0 {
+				l.levelAppearsReady = false
+			}
+			return false, false
+		}
+		return l.finished, l.dead
 	}
 
-	return l.updatePlayer(mouseX, mouseY), false
+	if !l.levelAppearsReady {
+		l.levelAppearsFrames--
+		if l.levelAppearsFrames <= 0 {
+			l.levelAppearsFrames = globalLevelOpacityFrames
+			l.levelAppearsReady = true
+		}
+		return false, false
+	}
+
+	if !l.levelAppearsDone {
+		l.levelAppearsFrames--
+		if l.levelAppearsFrames <= 0 {
+			l.levelAppearsDone = true
+			l.levelAppearsFrames = globalLevelOpacityFrames
+		}
+		return false, false
+	}
+
+	l.framesLeft--
+	if l.framesLeft == 0 {
+		l.dead = true
+		l.levelAppearsFrames = globalLevelOpacityFrames + globalEndLevelWaitFrames
+		return false, false
+	}
+
+	l.finished = l.updatePlayer(mouseX, mouseY)
+	if l.finished {
+		l.levelAppearsFrames = globalLevelOpacityFrames + globalEndLevelWaitFrames
+	}
+
+	return false, false
 }
 
 // Updating player position
