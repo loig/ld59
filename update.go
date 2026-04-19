@@ -24,33 +24,60 @@ import (
 
 func (g *game) Update() error {
 
+	g.soundEngine.playNow()
+
 	mouseX, mouseY := ebiten.CursorPosition()
 
 	switch g.state {
 	case gameStateTitle:
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+			g.soundEngine.register(soundOk)
 			g.state = gameStateHowTo
+			g.playerTrail.init(globalTutoPlayerX, globalTutoPlayerY)
 		}
 	case gameStateHowTo:
+		g.playerTrail.update(globalTutoPlayerX, globalTutoPlayerY)
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+			g.soundEngine.register(soundOk)
 			g.state = gameStateLevelExposition
 		}
 	case gameStateLevelExposition:
-		if g.level.updateExposition() {
+		done, playNote, note := g.level.updateExposition()
+		if playNote {
+			g.soundEngine.register(soundNote1 + note)
+		}
+		if done {
 			g.state = gameStateLevelResolution
+			g.playerTrail.init(
+				globalGridX+g.level.playerX*globalCellSize,
+				globalGridY+g.level.playerY*globalCellSize,
+			)
 		}
 	case gameStateLevelResolution:
-		finished, dead := g.level.update(mouseX, mouseY)
+		finished, dead, playMove, playMiss, playNote, note, x, y := g.level.update(mouseX, mouseY)
+		g.playerTrail.update(x, y)
+		if playMove {
+			g.soundEngine.register(soundJump)
+		}
+		if playMiss {
+			g.soundEngine.register(soundMiss)
+		}
+		if playNote {
+			g.soundEngine.register(soundNote1 + note)
+		}
 		if finished {
+			g.soundEngine.register(soundWon)
 			g.level.getNew(g.levelNumber)
 			g.levelNumber++
 			g.state = gameStateLevelExposition
 		}
 		if dead {
+			g.soundEngine.register(soundLost)
 			g.state = gameStateGameOver
 		}
 	case gameStateGameOver:
 		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+			g.soundEngine.register(soundOk)
 			g.levelNumber = 1
 			g.level.getNew(0)
 			g.state = gameStateTitle

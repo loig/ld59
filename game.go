@@ -31,6 +31,8 @@ type game struct {
 	state       gameState
 	level       level
 	levelNumber int
+	soundEngine soundEngine
+	playerTrail trail
 }
 
 func createGame() game {
@@ -39,5 +41,6 @@ func createGame() game {
 		levelNumber: 1,
 	}
 	g.level.getNew(0)
+	g.soundEngine = newSoundEngine()
 	return g
 }

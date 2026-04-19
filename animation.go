@@ -25,9 +25,12 @@ type move struct {
 	frames, totalFrames int
 	xFrom, yFrom        int
 	xTo, yTo            int
+	playedMove          bool
+	success             bool
+	posX, posY          int
 }
 
-func newMove(xF, yF, xT, yT int) (m move) {
+func newMove(xF, yF, xT, yT int, success bool) (m move) {
 	m.frames = 0
 	m.xFrom = xF
 	m.xTo = xT
@@ -35,21 +38,29 @@ func newMove(xF, yF, xT, yT int) (m move) {
 	m.yTo = yT
 	distance := max(xT-xF, xF-xT, yT-yF, yF-yT)
 	m.totalFrames = globalMoveFrames*distance - (globalMoveFrames*(distance-1))/2
+	m.playedMove = false
+	m.success = success
 	return
 }
 
 func (m *move) update() (done bool) {
 	m.frames++
+
+	timeProportion := float64(m.frames) / float64(m.totalFrames)
+
+	m.posX = getPositionFromTime(m.xFrom, m.xTo, globalGridX, timeProportion)
+	m.posY = getPositionFromTime(m.yFrom, m.yTo, globalGridY, timeProportion)
+
 	return m.frames >= m.totalFrames
 }
 
 func (m move) draw(screen *ebiten.Image) {
-	timeProportion := float64(m.frames) / float64(m.totalFrames)
+	//timeProportion := float64(m.frames) / float64(m.totalFrames)
 
-	x := getPositionFromTime(m.xFrom, m.xTo, globalGridX, timeProportion)
-	y := getPositionFromTime(m.yFrom, m.yTo, globalGridY, timeProportion)
+	//x := getPositionFromTime(m.xFrom, m.xTo, globalGridX, timeProportion)
+	//y := getPositionFromTime(m.yFrom, m.yTo, globalGridY, timeProportion)
 
-	freelyDrawPlayer(x, y, 1, screen)
+	freelyDrawPlayer(m.posX, m.posY, 1, screen)
 }
 
 func getPositionFromTime(from, to, shift int, time float64) int {

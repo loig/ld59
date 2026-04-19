@@ -25,7 +25,7 @@ import (
 )
 
 // Drawing a level
-func (l level) draw(screen *ebiten.Image) {
+func (l level) draw(trail trail, screen *ebiten.Image) {
 
 	opacity := float32(1)
 	if len(l.moveAnimations) <= 0 {
@@ -60,6 +60,7 @@ func (l level) draw(screen *ebiten.Image) {
 		//lBack = !lBack
 	}
 
+	trail.draw(screen)
 	if len(l.moveAnimations) > 0 {
 		l.moveAnimations[len(l.moveAnimations)-1].draw(screen)
 	} else {
@@ -130,12 +131,14 @@ func drawPlayer(x, y int, opacity float32, screen *ebiten.Image) {
 }
 
 func freelyDrawPlayer(xx, yy int, opacity float32, screen *ebiten.Image) {
-	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(float64(xx), float64(yy))
-	op.ColorScale.ScaleAlpha(opacity)
-	imX := 0
-	imY := globalCellSize
-	screen.DrawImage(images.SubImage(image.Rect(imX, imY, imX+globalCellSize, imY+globalCellSize)).(*ebiten.Image), op)
+	if xx >= globalGridX-5 && yy >= globalGridY-5 {
+		op := &ebiten.DrawImageOptions{}
+		op.GeoM.Translate(float64(xx), float64(yy))
+		op.ColorScale.ScaleAlpha(opacity)
+		imX := 0
+		imY := globalCellSize
+		screen.DrawImage(images.SubImage(image.Rect(imX, imY, imX+globalCellSize, imY+globalCellSize)).(*ebiten.Image), op)
+	}
 }
 
 func drawCursor(x, y int, reachable bool, opacity float32, screen *ebiten.Image) {
@@ -192,23 +195,45 @@ func drawMoveDistance(x, y, direction int, screen *ebiten.Image) {
 */
 
 // Updating level
-func (l *level) update(mouseX, mouseY int) (levelFinished, dead bool) {
+func (l *level) update(mouseX, mouseY int) (levelFinished, dead, playMove, playMiss, playNote bool, note int, xTrail, yTrail int) {
+
+	xTrail = globalGridX + l.playerX*globalCellSize
+	yTrail = globalGridY + l.playerY*globalCellSize
 
 	if len(l.moveAnimations) > 0 {
-		x, y := l.moveAnimations[len(l.moveAnimations)-1].xTo, l.moveAnimations[len(l.moveAnimations)-1].yTo
+		current := l.moveAnimations[len(l.moveAnimations)-1]
+		x, y := current.xTo, current.yTo
+		xTrail = current.posX
+		yTrail = current.posY
+
+		if !current.playedMove {
+			playMove = true
+			l.moveAnimations[len(l.moveAnimations)-1].playedMove = true
+		}
+
 		if l.moveAnimations[len(l.moveAnimations)-1].update() {
+
+			if current.success {
+				if l.grid[y][x] != signalElementNone {
+					playNote = true
+					note = int(l.grid[y][x])
+				}
+				l.grid[y][x] = signalElementNone
+			} else {
+				playMiss = true
+			}
+
 			l.moveAnimations = l.moveAnimations[:len(l.moveAnimations)-1]
 		}
-		if len(l.moveAnimations) <= 0 {
-			l.grid[y][x] = signalElementNone
-		}
 		if !l.finished && !l.dead {
-			l.finished = l.updatePlayer(mouseX, mouseY)
+			oldPlayMiss := playMiss
+			l.finished, playMiss = l.updatePlayer(mouseX, mouseY)
+			playMiss = playMiss || oldPlayMiss
 			if l.finished {
 				l.levelAppearsFrames = globalLevelOpacityFrames + globalEndLevelWaitFrames
 			}
 		}
-		return false, false
+		return false, false, playMove, playMiss, playNote, note, xTrail, yTrail
 	}
 
 	if l.finished || l.dead {
@@ -218,16 +243,16 @@ func (l *level) update(mouseX, mouseY int) (levelFinished, dead bool) {
 				l.levelAppearsDone = false
 				l.levelAppearsFrames = globalFramesBeforeLevel
 			}
-			return false, false
+			return false, false, playMove, playMiss, playNote, note, xTrail, yTrail
 		}
 		if l.levelAppearsReady {
 			l.levelAppearsFrames--
 			if l.levelAppearsFrames <= 0 {
 				l.levelAppearsReady = false
 			}
-			return false, false
+			return false, false, playMove, playMiss, playNote, note, xTrail, yTrail
 		}
-		return l.finished, l.dead
+		return l.finished, l.dead, playMove, playMiss, playNote, note, xTrail, yTrail
 	}
 
 	if !l.levelAppearsReady {
@@ -236,7 +261,7 @@ func (l *level) update(mouseX, mouseY int) (levelFinished, dead bool) {
 			l.levelAppearsFrames = globalLevelOpacityFrames
 			l.levelAppearsReady = true
 		}
-		return false, false
+		return false, false, playMove, playMiss, playNote, note, xTrail, yTrail
 	}
 
 	if !l.levelAppearsDone {
@@ -245,26 +270,28 @@ func (l *level) update(mouseX, mouseY int) (levelFinished, dead bool) {
 			l.levelAppearsDone = true
 			l.levelAppearsFrames = globalLevelOpacityFrames
 		}
-		return false, false
+		return false, false, playMove, playMiss, playNote, note, xTrail, yTrail
 	}
 
 	l.framesLeft--
 	if l.framesLeft == 0 {
 		l.dead = true
 		l.levelAppearsFrames = globalLevelOpacityFrames + globalEndLevelWaitFrames
-		return false, false
+		return false, false, playMove, playMiss, playNote, note, xTrail, yTrail
 	}
 
-	l.finished = l.updatePlayer(mouseX, mouseY)
+	oldPlayMiss := playMiss
+	l.finished, playMiss = l.updatePlayer(mouseX, mouseY)
+	playMiss = playMiss || oldPlayMiss
 	if l.finished {
 		l.levelAppearsFrames = globalLevelOpacityFrames + globalEndLevelWaitFrames
 	}
 
-	return false, false
+	return false, false, playMove, playMiss, playNote, note, xTrail, yTrail
 }
 
 // Updating player position
-func (l *level) updatePlayer(mouseX, mouseY int) (levelFinished bool) {
+func (l *level) updatePlayer(mouseX, mouseY int) (levelFinished, playMiss bool) {
 
 	l.cursorX = mouseToGridX(mouseX)
 	l.cursorY = mouseToGridY(mouseY)
@@ -294,12 +321,13 @@ func (l *level) updatePlayer(mouseX, mouseY int) (levelFinished bool) {
 
 	switch {
 	case inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft):
-		return l.movePlayer(l.cursorX, l.cursorY)
+		return l.movePlayer(l.cursorX, l.cursorY), false
 	case inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonRight):
 		l.revertMove()
+		playMiss = true
 	}
 
-	return false
+	return false, playMiss
 }
 
 func (l *level) movePlayer(newPosX, newPosY int) (levelFinished bool) {
@@ -327,8 +355,8 @@ func (l *level) movePlayer(newPosX, newPosY int) (levelFinished bool) {
 
 	// move is not possible
 	if !possibleMove {
-		l.moveAnimations = addAnimation(l.moveAnimations, newMove(l.playerX, l.playerY, newPosX, newPosY))
-		l.moveAnimations = addAnimation(l.moveAnimations, newMove(newPosX, newPosY, l.playerX, l.playerY))
+		l.moveAnimations = addAnimation(l.moveAnimations, newMove(l.playerX, l.playerY, newPosX, newPosY, false))
+		l.moveAnimations = addAnimation(l.moveAnimations, newMove(newPosX, newPosY, l.playerX, l.playerY, true))
 		return
 	}
 
@@ -342,7 +370,7 @@ func (l *level) movePlayer(newPosX, newPosY int) (levelFinished bool) {
 	})
 
 	// setup animation
-	l.moveAnimations = addAnimation(l.moveAnimations, newMove(l.playerX, l.playerY, newPosX, newPosY))
+	l.moveAnimations = addAnimation(l.moveAnimations, newMove(l.playerX, l.playerY, newPosX, newPosY, true))
 
 	// apply move
 	l.playerProgress++

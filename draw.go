@@ -26,12 +26,13 @@ func (g *game) Draw(screen *ebiten.Image) {
 		drawTitle(screen)
 	case gameStateHowTo:
 		drawHowTo(screen)
+		g.playerTrail.draw(screen)
 		freelyDrawPlayer(globalTutoPlayerX, globalTutoPlayerY, 1, screen)
 	case gameStateLevelExposition:
 		g.level.drawExposition(screen)
 		drawNumberAt(globalLevelNumX, globalLevelNumY, g.levelNumber, screen)
 	case gameStateLevelResolution:
-		g.level.draw(screen)
+		g.level.draw(g.playerTrail, screen)
 		drawNumberAt(globalLevelNumX, globalLevelNumY, g.levelNumber, screen)
 	case gameStateGameOver:
 		drawGameOver(screen)

@@ -44,7 +44,7 @@ func (l level) drawExposition(screen *ebiten.Image) {
 	drawCountDown(l.framesLeft, l.frames, screen)
 }
 
-func (l *level) updateExposition() (done bool) {
+func (l *level) updateExposition() (done, playNote bool, note int) {
 
 	if !l.expositionReady {
 		l.signalElementFramesLeft--
@@ -52,11 +52,17 @@ func (l *level) updateExposition() (done bool) {
 			l.signalElementFramesLeft = l.signalElementFrames
 			l.expositionReady = true
 		}
-		return false
+		return false, false, 0
 	}
 
 	if !l.expositionDone {
 		l.signalElementFramesLeft--
+
+		if l.signalElementFrames-l.signalElementFramesLeft == globalOpacityFrames {
+			playNote = true
+			note = int(l.signal[l.signalPosition])
+		}
+
 		if l.signalElementFramesLeft <= 0 {
 			l.signalElementFramesLeft = l.signalElementFrames
 			l.signalPosition++
@@ -67,11 +73,11 @@ func (l *level) updateExposition() (done bool) {
 		if l.expositionDone {
 			l.signalElementFramesLeft = globalFramesBeforeFirstSymbol
 		}
-		return false
+		return false, playNote, note
 	}
 
 	l.signalElementFramesLeft--
-	return l.signalElementFramesLeft <= 0
+	return l.signalElementFramesLeft <= 0, false, 0
 }
 
 func (s signalElement) drawFreely(x, y int, big bool, screen *ebiten.Image) {
