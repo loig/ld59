@@ -42,6 +42,7 @@ const (
 	globalOpacityFrames           = 10
 	globalLevelOpacityFrames      = 20
 	globalEndLevelWaitFrames      = 30
+	globalMoveFrames              = 8
 
 	// balancing
 	globalMaxFramePerLevel = 600

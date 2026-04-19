@@ -49,4 +49,5 @@ type level struct {
 	expositionDone                               bool
 	expositionReady                              bool
 	finished, dead                               bool
+	moveAnimations                               []move
 }
